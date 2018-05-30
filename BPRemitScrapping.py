@@ -23,10 +23,12 @@ def scrapeBPRemits(right_table):
     #iterating through the html tags to assigned the values into the respective columns
     for row in right_table.findAll("tr"):
 
+        #extract the postID from the tr tag to be used for 'see revisions' later on
         postID.append(row['data-id'])
 
+        #only looks at the span tags as data are within the tags
         cells = row.findAll('span')
-        if len(cells)==19: #Only extract table body not heading
+        if len(cells)==19:
             #messageID uses different method to remove the view revisions tab
             messageID.append(re.sub('\s+',' ',cells[0].find(text=True)).strip())
 
@@ -51,7 +53,7 @@ def scrapeBPRemits(right_table):
             messageIDNum.append(cells[18].get_text(" ", strip=True))
 
 
-#scrapes the revision data by making use of the post ID extracted from the html
+#method to scrape the revision data by making use of the post ID extracted from the html
 def scrape_revisions(postID):
     
     #iterates through all the codes to identify if there are revisions
@@ -100,9 +102,9 @@ def scrape_revisions(postID):
             messageIDNum.append(row['messageIDNum'])
  
 
-#creates a dataframe using the list of data scraped from the website
+#method to create a dataframe using the list of data scraped from the website
 def dataframeCreation():    
-    #import pandas to convert list to data frame
+    #initialising the columns with the respective list created
     df['MESSAGE_ID']=messageID
     df['UMM_TYPE']=ummType
     df['PUBLICATION_DATE_AND_TIME']=publicationDateTime
@@ -135,7 +137,7 @@ def dataframeCreation():
     df.replace('nan', 'null', inplace = True)
     df.replace('None', 'null', inplace = True)
 
-## SQL database name and initialize the sql connection.
+#method to store data into SQLite3 using SQL database name and initializing the sql connection.
 def databaseLoading():
     db_filename = r'BPREMIT'
     con = lite.connect(db_filename)
@@ -147,7 +149,8 @@ def databaseLoading():
             df.iloc[i:i+1].to_sql('BPREMIT', con,
                     schema=None, if_exists='append', index=False, chunksize=None, dtype=None)
         except lite.IntegrityError: 
-              pass
+            print ('There are duplicates already in the database.')
+            pass
 
     ## Close the SQL connection
     con.close()
